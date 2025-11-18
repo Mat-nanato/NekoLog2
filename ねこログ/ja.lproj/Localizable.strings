@@ -1,0 +1,149 @@
+//
+//  Untitled.swift
+//  NekoLog
+//
+//  Created by user on 2025/11/14.
+//
+
+"cat_info_title" = "お猫様の情報";
+"cat_call_name" = "お猫様に読んでほしい名前";
+"cat_real_name" = "お猫様の名前";
+
+"user_profile_title" = "ユーザープロフィール";
+"gender_title" = "性別";
+"age_title" = "年齢";
+"address_title" = "住所（市区町村）";
+"height_title" = "身長 (cm)";
+"weight_title" = "体重 (kg)";
+
+"lifestyle_title" = "生活習慣";
+"alcohol_title" = "飲酒";
+"tobacco_title" = "喫煙";
+
+"next_button" = "次へ";
+
+"user_image_title" = "ユーザー画像";
+"no_image_selected" = "画像未選択";
+"select_photo" = "ユーザー写真を選ぶ";
+"catify_button" = "猫化する";
+
+"user_info_input_title" = "ユーザー情報入力";
+
+"score_title" = "今日の調子は？";
+
+"weather_message" = "今日は%1$@、%2$@。多分にゃ。";
+"greeting_message" = "じゃあ%1$@の今日の点数を発表するにゃ。";
+"final_score_message" = "%1$@の今日の気分は多分%2$@点くらいだにゃ。";
+"churu_count_message" = "チューる後 %1$@ 個にゃ。";
+
+"encourage_bad" = "今日は休んで病院行くにゃ！！";
+"encourage_low" = "無理せず、少しずつがんばろうにゃ？";
+"encourage_good" = "いい調子だにゃ！これをキープにゃ。";
+"encourage_great" = "絶好調にゃ！猫缶買ってくるにゃ。";
+
+"not_translated_yet" = "まだ鳴き声を翻訳していないよ";
+"recording_now" = "録音中…";
+
+"record_stop" = "録音停止";
+"record_start" = "ニャウリンガルで聞いてみよう";
+
+"take_front_photo" = "今日の猫顔正面写真を撮るのにゃ";
+
+"mood" = "気分";
+"stress" = "ストレス";
+"stamina" = "体力";
+"sleep" = "睡眠";
+"focus" = "集中力";
+"safety" = "安心感";
+
+"diagnosis_request" = "チューるくれたら診断してやるにゃ。\n２行で悩みを言えにゃ。\n一日一個までにしろにゃ。";
+
+"give_churu" = "チューるをあげる";
+"remaining_churu" = "残り %d 個";
+
+"thinking" = "考え中…";
+
+"send" = "送信";
+
+"error_invalid_format" = "返答形式が不正にゃ";
+"error_server_connection" = "サーバに接続できないにゃ";
+
+"error_invalid_url" = "URLが無効にゃ";
+
+"back" = "戻る";
+"heal_mode" = "癒してやるにゃ";
+
+"photos" = "写真";
+
+"current_steps" = "今の歩数にゃ";
+
+"buy_churu" = "チューる\nを買う";
+
+"notif_score_title" = "今日のスコア予測";
+"notif_score_body" = "%@の今日の気分は多分%d点位だにゃ\nまた明日の朝に連絡するにゃ";
+
+"diagnosis_result" = "診断結果";
+"back" = "戻る";
+
+"loading" = "読み込み中";
+"yesterday_teacher" = "昨日の%@先生";
+
+"server_unreachable" = "サーバに接続できないにゃ";
+
+"purchase_ai_message" = "にゃん診断中…";
+
+"purchase_churu_title" = "チューるを購入";
+"quantity" = "個数";
+"total_price" = "合計金額";
+"purchase_button" = "購入する";
+"purchase_complete" = "購入完了";
+"churu_item_message" = "個のチューるいつもありがとにゃ。合計";
+"invalid_url" = "URL無効にゃ";
+"invalid_response_format" = "返答形式が不正にゃ";
+"cannot_connect_server" = "サーバに接続できないにゃ";
+
+"steps_progress_message" = "今%d歩くらい歩いたにゃ、後%d歩でチューるゲットだにゃ";
+
+"weekly_steps_title" = "過去7日間の歩数";
+"steps" = "歩数";
+"index" = "日付";
+"today_label" = "今日";
+
+"terms_title" = "利用規約";
+"terms_of_service_text" = "ここに日本語の利用規約全文を記載";
+"agree_and_start" = "同意して開始する";
+
+"settings_title" = "設定";
+"view_terms" = "利用規約を見る";
+"start_subscription" = "購読を開始する (7日無料 → 月額3,000円)";
+"restore_purchases" = "購入を復元する";
+
+"select_language_prompt" = "言語を選択してください";
+"english" = "英語";
+
+"japanese" = "日本語";
+
+"read_terms" = "利用規約を読む";
+"initial_setup" = "初回設定";
+
+"cat_call_name_placeholder" = "お猫様に読んでほしい名前";
+"cat_real_name_placeholder" = "お猫様の名前";
+
+"age_placeholder" = "年齢";
+"address_placeholder" = "住所（市区町村）";
+"height_placeholder" = "身長 (cm)";
+"weight_placeholder" = "体重 (kg)";
+
+"gender_male" = "男性";
+"gender_female" = "女性";
+"gender_other" = "その他";
+"alcohol_none" = "飲まない";
+"alcohol_yes" = "飲む";
+"tobacco_none" = "吸わない";
+"tobacco_yes" = "吸う";
+
+"pick_photo" = "ユーザー写真を選ぶ";
+"make_cat" = "猫化する";
+
+"voice_not_translated" = "まだ鳴き声を翻訳していないよ";
+"voice_recording" = "録音中…";

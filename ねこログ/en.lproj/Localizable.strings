@@ -1,0 +1,148 @@
+//
+//  Untitled.swift
+//  NekoLog
+//
+//  Created by user on 2025/11/14.
+//
+
+"cat_info_title" = "Cat Information";
+"cat_call_name" = "Name you want the cat to call you";
+"cat_real_name" = "Cat's Name";
+
+"user_profile_title" = "User Profile";
+"gender_title" = "Gender";
+"age_title" = "Age";
+"address_title" = "City / Municipality";
+"height_title" = "Height (cm)";
+"weight_title" = "Weight (kg)";
+
+"lifestyle_title" = "Lifestyle";
+"alcohol_title" = "Alcohol";
+"tobacco_title" = "Smoking";
+
+"next_button" = "Next";
+
+"user_image_title" = "User Image";
+"no_image_selected" = "No Image Selected";
+"select_photo" = "Select a Photo";
+"catify_button" = "Catify";
+
+"user_info_input_title" = "User Information";
+
+"score_title" = "How are you feeling today?";
+
+"weather_message" = "Today is %1$@, %2$@, I think nya.";
+"greeting_message" = "Okay, I'll announce %1$@'s score for today nya.";
+"final_score_message" = "%1$@'s mood today is probably around %2$@ points nya.";
+"churu_count_message" = "After this, you have %1$@ churu left nya.";
+
+"encourage_bad" = "Take a rest today and maybe visit a doctor nya!!";
+"encourage_low" = "Don't push yourself, take it slow nya.";
+"encourage_good" = "You're doing well! Keep it up nya.";
+"encourage_great" = "You're in great shape! Let's get some cat food nya!";
+
+"not_translated_yet" = "No meows translated yet!";
+"recording_now" = "Recording…";
+
+"record_stop" = "Stop Recording";
+"record_start" = "Let's Listen with Meowlingual";
+
+"take_front_photo" = "Take today's front-face cat photo!";
+
+"mood" = "Mood";
+"stress" = "Stress";
+"stamina" = "Stamina";
+"sleep" = "Sleep";
+"focus" = "Focus";
+"safety" = "Security";
+
+"diagnosis_request" = "Give me a Churu and I'll diagnose you.\nTell me your worry in two lines.\nOnly one per day, okay?";
+
+"give_churu" = "Give Churu";
+"remaining_churu" = "Remaining: %d";
+
+"thinking" = "Thinking…";
+
+"send" = "Send";
+
+"error_invalid_format" = "Invalid response format";
+"error_server_connection" = "Unable to connect to server";
+
+"error_invalid_url" = "Invalid URL";
+
+"back" = "Back";
+"heal_mode" = "Let me heal you";
+
+"photos" = "Photos";
+
+"current_steps" = "Current steps";
+
+"buy_churu" = "Buy\nChuru";
+
+"notif_score_title" = "Today's Score Forecast";
+"notif_score_body" = "%@'s mood today is probably around %d points.\nI'll contact you again tomorrow morning.";
+
+"diagnosis_result" = "Diagnosis Result";
+"back" = "Back";
+
+"loading" = "Loading";
+"yesterday_teacher" = "Yesterday %@ teacher";
+
+"server_unreachable" = "Cannot connect to server";
+
+"purchase_ai_message" = "Checking with Nyan AI…";
+
+"purchase_churu_title" = "Buy Churu";
+"quantity" = "Quantity";
+"total_price" = "Total Price";
+"purchase_button" = "Purchase";
+"purchase_complete" = "Purchase Complete";
+"churu_item_message" = "Churu(s) received! Total";
+"invalid_url" = "Invalid URL";
+"invalid_response_format" = "Invalid response format";
+"cannot_connect_server" = "Cannot connect to server";
+
+"steps_progress_message" = "You've walked %d steps, %d more to get Churu!";
+
+"weekly_steps_title" = "Steps in the past 7 days";
+"steps" = "Steps";
+"index" = "Date";
+"today_label" = "Today";
+
+"terms_title" = "Terms of Service";
+"terms_of_service_text" = "Full text of Terms of Service in English goes here";
+"agree_and_start" = "Agree and Start";
+
+"settings_title" = "Settings";
+"view_terms" = "View Terms of Service";
+"start_subscription" = "Start Subscription (7-day free → ¥3,000/month)";
+"restore_purchases" = "Restore Purchases";
+
+"select_language_prompt" = "Select a language / 言語を選択してください";
+"japanese" = "Japanese";
+"english" = "English";
+"read_terms" = "Read Terms of Service";
+"initial_setup" = "Initial Setup";
+
+"cat_call_name_placeholder" = "Cat Call Name";
+"cat_real_name_placeholder" = "Cat Real Name";
+
+"age_placeholder" = "Age";
+"address_placeholder" = "Address";
+"height_placeholder" = "Height (cm)";
+"weight_placeholder" = "Weight (kg)";
+
+"gender_male" = "Male";
+"gender_female" = "Female";
+"gender_other" = "Other";
+"gender_male" = "Male";
+"gender_female" = "Female";
+"gender_other" = "Other";
+"tobacco_none" = "No";
+"tobacco_yes" = "Yes";
+
+"pick_photo" = "Select Photo";
+"make_cat" = "Make Cat";
+
+"voice_not_translated" = "Not translated yet";
+"voice_recording" = "Recording...";

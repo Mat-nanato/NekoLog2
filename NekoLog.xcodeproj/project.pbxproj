@@ -24,14 +24,38 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		CEAE21C92E9A192A00D9F9E8 /* ねこログ.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ねこログ.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CEAE21C92E9A192A00D9F9E8 /* app.lab.nanato.necolog.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = app.lab.nanato.necolog.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEAE21D62E9A192D00D9F9E8 /* ねこログTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "ねこログTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEAE21E02E9A192D00D9F9E8 /* ねこログUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "ねこログUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		CE504DA02EC71CFB005AF271 /* Exceptions for "ねこログ" folder in "ねこログ" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"/Localized: Localizable.strings",
+			);
+			target = CEAE21C82E9A192A00D9F9E8 /* ねこログ */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		CE504DA12EC71CFB005AF271 /* Exceptions for "ねこログ" folder in "Compile Sources" phase from "ねこログ" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = CEAE21C52E9A192A00D9F9E8 /* Sources */;
+			membershipExceptions = (
+				"/Localized: Localizable.strings",
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		CEAE21CB2E9A192A00D9F9E8 /* ねこログ */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				CE504DA02EC71CFB005AF271 /* Exceptions for "ねこログ" folder in "ねこログ" target */,
+				CE504DA12EC71CFB005AF271 /* Exceptions for "ねこログ" folder in "Compile Sources" phase from "ねこログ" target */,
+			);
 			path = "ねこログ";
 			sourceTree = "<group>";
 		};
@@ -85,7 +109,7 @@
 		CEAE21CA2E9A192A00D9F9E8 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				CEAE21C92E9A192A00D9F9E8 /* ねこログ.app */,
+				CEAE21C92E9A192A00D9F9E8 /* app.lab.nanato.necolog.app */,
 				CEAE21D62E9A192D00D9F9E8 /* ねこログTests.xctest */,
 				CEAE21E02E9A192D00D9F9E8 /* ねこログUITests.xctest */,
 			);
@@ -114,7 +138,7 @@
 			packageProductDependencies = (
 			);
 			productName = "ねこログ";
-			productReference = CEAE21C92E9A192A00D9F9E8 /* ねこログ.app */;
+			productReference = CEAE21C92E9A192A00D9F9E8 /* app.lab.nanato.necolog.app */;
 			productType = "com.apple.product-type.application";
 		};
 		CEAE21D52E9A192D00D9F9E8 /* ねこログTests */ = {
@@ -186,12 +210,13 @@
 					};
 				};
 			};
-			buildConfigurationList = CEAE21C42E9A192A00D9F9E8 /* Build configuration list for PBXProject "ねこログ" */;
+			buildConfigurationList = CEAE21C42E9A192A00D9F9E8 /* Build configuration list for PBXProject "NekoLog" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
+				ja,
 			);
 			mainGroup = CEAE21C02E9A192A00D9F9E8;
 			minimizedProjectReferenceProxies = 1;
@@ -274,6 +299,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -330,6 +356,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				VALIDATE_PRODUCT = YES;
 			};
 			name = Debug;
 		};
@@ -338,6 +365,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -371,6 +399,7 @@
 				DEVELOPMENT_TEAM = TB5M8Y49QM;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -384,6 +413,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
@@ -395,11 +425,20 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "ねこログ/ねこログ.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 6.3;
 				DEVELOPMENT_TEAM = TB5M8Y49QM;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "------Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = NekoLog;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
+				INFOPLIST_KEY_NSCameraUsageDescription = "猫の写真を撮るために使用します ";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "歩数データの取得のために使用します";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "歩数データの保存のために使用します";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "音声入力を解析するためにマイクを使用します";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "猫や人の写真を選ぶために使用します";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -409,9 +448,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "app.lab.nanato.-----";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				MARKETING_VERSION = 4.3;
+				PRODUCT_BUNDLE_IDENTIFIER = app.lab.nanato.necolog;
+				PRODUCT_NAME = app.lab.nanato.necolog;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -423,11 +462,20 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "ねこログ/ねこログ.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 6.3;
 				DEVELOPMENT_TEAM = TB5M8Y49QM;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "------Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = NekoLog;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
+				INFOPLIST_KEY_NSCameraUsageDescription = "猫の写真を撮るために使用します ";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "歩数データの取得のために使用します";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "歩数データの保存のために使用します";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "音声入力を解析するためにマイクを使用します";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "猫や人の写真を選ぶために使用します";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -437,9 +485,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "app.lab.nanato.-----";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				MARKETING_VERSION = 4.3;
+				PRODUCT_BUNDLE_IDENTIFIER = app.lab.nanato.necolog;
+				PRODUCT_NAME = app.lab.nanato.necolog;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -521,7 +569,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		CEAE21C42E9A192A00D9F9E8 /* Build configuration list for PBXProject "ねこログ" */ = {
+		CEAE21C42E9A192A00D9F9E8 /* Build configuration list for PBXProject "NekoLog" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CEAE21E82E9A192D00D9F9E8 /* Debug */,

@@ -1,0 +1,932 @@
+// MARK: - TermsOfServiceView.swift
+import SwiftUI
+import Foundation
+import StoreKit
+import Charts
+import HealthKit
+
+// MARK: - 言語管理
+enum AppLanguage: String, CaseIterable {
+    case japanese = "ja"
+    case english = "en"
+}
+
+class LanguageManager: ObservableObject {
+    @Published var current: AppLanguage {
+        didSet {
+            UserDefaults.standard.set(current.rawValue, forKey: "appLanguage")
+        }
+    }
+
+    init() {
+        if let saved = UserDefaults.standard.string(forKey: "appLanguage"),
+           let lang = AppLanguage(rawValue: saved) {
+            current = lang
+        } else {
+            current = .japanese  // 初期値
+        }
+    }
+
+    func localized(_ key: String) -> String {
+        let langCode = current.rawValue
+        
+        guard let path = Bundle.main.path(forResource: langCode, ofType: "lproj"),
+              let bundle = Bundle(path: path) else {
+            return key
+        }
+
+        return NSLocalizedString(key, tableName: nil, bundle: bundle, value: key, comment: "")
+    }
+}
+
+
+// MARK: - 追加購入
+struct PurchaseChuruView: View {
+    @EnvironmentObject var userInfo: UserInfo
+    @State private var quantity: Int = 1
+    let pricePerUnit = 100
+    @State private var showAlert = false
+    @State private var purchaseAIMessage = NSLocalizedString("ai_diagnosis_in_progress", comment: "AI応援メッセージ中")
+    @StateObject var subscriptionManager = SubscriptionManager()
+    let goalSteps: Int = 10000
+
+    let catIcon: UIImage?
+
+    var totalPrice: Int {
+        quantity * pricePerUnit
+    }
+
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                colors: [Color.pink.opacity(0.3),
+                         Color.yellow.opacity(0.3),
+                         Color.blue.opacity(0.3)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            
+            VStack(spacing: 20) {
+                // タイトル
+                Text(NSLocalizedString("purchase_churu_title", comment: "購入画面タイトル"))
+                    .font(.title)
+                    .bold()
+                    .frame(maxWidth: .infinity)
+                
+                // 個数ステッパー
+                Stepper("\(NSLocalizedString("quantity", comment: "個数")): \(quantity)", value: $quantity, in: 1...99)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                
+                // 合計金額
+                Text("\(NSLocalizedString("total_price", comment: "合計金額")): \(totalPrice)円")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                
+                // AI応援メッセージ
+                Text(purchaseAIMessage)
+                    .font(.body)
+                    .foregroundColor(.blue)
+                    .padding(8)
+                    .background(Color.white.opacity(0.7))
+                    .cornerRadius(12)
+                    .fixedSize(horizontal: false, vertical: true)
+                
+                // 購入ボタン
+                Button(action: {
+                    userInfo.churuCount += quantity
+                    showAlert = true
+                    Task {
+                        let prompt = """
+                        あなたは猫キャラクターです。ユーザーがチュールを購入しました。
+                        ユーザー情報:
+                        呼ばれたい名前: \(userInfo.catCallName)
+                        猫の名前: \(userInfo.catRealName)
+                        性別: \(userInfo.genderEnum.rawValue)
+                        年齢: \(userInfo.age)
+                        身長: \(userInfo.height)
+                        体重: \(userInfo.weight)
+                        住所: \(userInfo.address)
+                        アルコール: \(userInfo.alcoholEnum.rawValue)
+                        タバコ: \(userInfo.tobaccoEnum.rawValue)
+                        これらを踏まえて、短く可愛く、元気づける応援メッセージを出してください。
+                        """
+
+                        purchaseAIMessage = await fetchAIReplyText(for: prompt)
+                    }
+                }) {
+                    Text(NSLocalizedString("purchase_button", comment: "購入ボタン"))
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue)
+                        .cornerRadius(12)
+                }
+                .alert(NSLocalizedString("purchase_complete", comment: "購入完了アラート"), isPresented: $showAlert, actions: {
+                    Button("OK", role: .cancel) { }
+                }, message: {
+                    Text("\(quantity) \(NSLocalizedString("churu_item_message", comment: "購入後メッセージ")) \(totalPrice)円")
+                })
+
+                // 歩数吹き出し + 棒グラフ
+                if let icon = catIcon {
+                    CatTalkViewForSteps(
+                        icon: icon,
+                        steps: subscriptionManager.stepsToday,
+                        goal: goalSteps,
+                        userInfo: userInfo,
+                        subscriptionManager: subscriptionManager
+                    )
+                }
+            }
+            Spacer(minLength: 0)
+        }
+    }
+}
+
+    // --- 非同期 AI 呼び出し ---
+    private func fetchAIReplyText(for prompt: String) async -> String {
+        let fullPrompt = "\(prompt)"
+        #if DEBUG
+        let baseURL = "http://localhost:8787"
+        #else
+        let baseURL = "https://my-worker.app-lab-nanato.workers.dev"
+        #endif
+        
+        guard let url = URL(string: baseURL) else { return NSLocalizedString("invalid_url", comment: "URL無効") }
+        
+        let body: [String: Any] = ["prompt": fullPrompt]
+        do {
+            let data = try JSONSerialization.data(withJSONObject: body)
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = data
+            
+            let (responseData, _) = try await URLSession.shared.data(for: request)
+            if let json = try? JSONSerialization.jsonObject(with: responseData) as? [String: Any],
+               let reply = json["reply"] as? String {
+                return reply
+            } else {
+                return NSLocalizedString("invalid_response_format", comment: "返答形式が不正")
+            }
+        } catch {
+            return "\(NSLocalizedString("cannot_connect_server", comment: "サーバ接続不可")): \(error.localizedDescription)"
+        }
+    }
+
+
+// MARK: - 初回起動管理
+class AppState: ObservableObject {
+    @Published var isFirstLaunch: Bool
+    
+    init() {
+        let launchedBefore = UserDefaults.standard.bool(forKey: "hasLaunchedBefore")
+        self.isFirstLaunch = !launchedBefore
+    }
+    
+    func markLaunched() {
+        UserDefaults.standard.set(true, forKey: "hasLaunchedBefore")
+        isFirstLaunch = false
+    }
+}
+
+
+/// MARK: - 課金管理 + 無料トライアル + 歩数監視
+@MainActor
+class SubscriptionManager: ObservableObject {
+    @Published var hasActiveSubscription: Bool = false
+    @Published var subscriptionStatusMessage: String = ""
+    @Published var subscriptionStartDate: Date?
+    @Published var stepsToday: Int = 0
+    @Published var dailySteps: [DailyStep] = []
+
+    private let healthStore = HKHealthStore()
+    private var lastRewardDate: Date?
+    let goalSteps = 10000
+    let productId = "com.example.mentalhealth.monthly"
+
+    struct DailyStep: Identifiable {
+        let id = UUID()
+        let date: Date
+        let steps: Int
+    }
+
+    init() {
+        print("🔹 SubscriptionManager init start")
+
+        // --- 月曜始まりの7日分を初期化 ---
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.firstWeekday = 2 // 月曜始まり
+
+        let today = Date()
+        let weekday = calendar.component(.weekday, from: today)
+        let daysFromMonday = (weekday + 5) % 7 // 0 = 月曜
+        let monday = calendar.date(byAdding: .day, value: -daysFromMonday, to: calendar.startOfDay(for: today))!
+
+        self.dailySteps = (0..<7).map { offset in
+            let date = calendar.date(byAdding: .day, value: offset, to: monday)!
+            return DailyStep(date: date, steps: 0)
+        }
+
+        // 保存された課金開始日があれば取得
+        if let savedDate = UserDefaults.standard.object(forKey: "subscriptionStartDate") as? Date {
+            subscriptionStartDate = savedDate
+            print("🔹 課金開始日 savedDate が見つかった: \(savedDate)")
+        } else {
+            print("🔹 課金開始日 savedDate はなし")
+        }
+
+        // 保存された報酬日があれば取得
+        if let rewardDate = UserDefaults.standard.object(forKey: "lastRewardDate") as? Date {
+            lastRewardDate = rewardDate
+        }
+
+        requestHealthAuthorization()
+        print("🔹 SubscriptionManager init end")
+    }
+
+    // MARK: - HealthKit 歩数処理
+    private func requestHealthAuthorization() {
+        guard HKHealthStore.isHealthDataAvailable() else { return }
+        let stepType = HKQuantityType.quantityType(forIdentifier: .stepCount)!
+        healthStore.requestAuthorization(toShare: [], read: [stepType]) { success, error in
+            if success {
+                Task { @MainActor in
+                    self.startStepMonitoring()
+                }
+            } else {
+                print("⚠️ HealthKit authorization failed: \(error?.localizedDescription ?? "")")
+            }
+        }
+    }
+
+    @MainActor
+    private func startStepMonitoring() {
+        let stepType = HKQuantityType.quantityType(forIdentifier: .stepCount)!
+        
+        // 初回取得
+        fetchTodaySteps()
+        fetchWeeklySteps()
+        
+        // ObserverQuery
+        let observerQuery = HKObserverQuery(sampleType: stepType, predicate: nil) { [weak self] _, _, _ in
+            guard let self = self else { return }
+            Task { @MainActor in
+                self.fetchTodaySteps()
+                self.fetchWeeklySteps()
+            }
+            // completionHandlerは呼ばなくてOK
+        }
+        healthStore.execute(observerQuery)
+        
+        // バックグラウンド通知
+        healthStore.enableBackgroundDelivery(for: stepType, frequency: .immediate) { success, error in
+            if !success {
+                print("⚠️ Background delivery failed: \(error?.localizedDescription ?? "unknown")")
+            }
+        }
+        
+        // AnchoredObjectQuery
+        let anchoredQuery = HKAnchoredObjectQuery(
+            type: stepType,
+            predicate: nil,
+            anchor: nil,
+            limit: HKObjectQueryNoLimit
+        ) { [weak self] _, _, _, _, _ in
+            guard let self = self else { return }
+            Task { @MainActor in
+                self.fetchTodaySteps()
+                self.fetchWeeklySteps()
+            }
+        }
+        
+        anchoredQuery.updateHandler = { [weak self] _, _, _, _, _ in
+            guard let self = self else { return }
+            Task { @MainActor in
+                self.fetchTodaySteps()
+                self.fetchWeeklySteps()
+            }
+        }
+        
+        healthStore.execute(anchoredQuery)
+    }
+
+
+    private func fetchTodaySteps() {
+        let stepType = HKQuantityType.quantityType(forIdentifier: .stepCount)!
+        let startOfDay = Calendar.current.startOfDay(for: Date())
+        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: Date(), options: .strictStartDate)
+
+        let query = HKStatisticsQuery(quantityType: stepType, quantitySamplePredicate: predicate, options: .cumulativeSum) { [weak self] _, result, _ in
+            guard let self = self else { return }
+            let total = result?.sumQuantity()?.doubleValue(for: .count()) ?? 0
+            DispatchQueue.main.async {
+                self.stepsToday = Int(total)
+                self.checkForReward()
+            }
+        }
+        healthStore.execute(query)
+    }
+    private func fetchWeeklySteps() {
+        let stepType = HKQuantityType.quantityType(forIdentifier: .stepCount)!
+        let calendar = Calendar.current
+        let now = Date()
+        guard let startDate = calendar.date(byAdding: .day, value: -6, to: calendar.startOfDay(for: now)) else { return }
+
+        var interval = DateComponents()
+        interval.day = 1
+
+        let predicate = HKQuery.predicateForSamples(
+            withStart: startDate,
+            end: now,
+            options: .strictStartDate
+        )
+
+        let query = HKStatisticsCollectionQuery(
+            quantityType: stepType,
+            quantitySamplePredicate: predicate, // ← nil → predicate に修正
+            options: .cumulativeSum,
+            anchorDate: calendar.startOfDay(for: now),
+            intervalComponents: interval
+        )
+
+
+        query.initialResultsHandler = { [weak self] _, results, _ in
+            guard let self = self else { return }
+            var newSteps: [DailyStep] = []
+
+            results?.enumerateStatistics(from: startDate, to: now) { stats, _ in
+                let steps = stats.sumQuantity()?.doubleValue(for: .count()) ?? 0
+                newSteps.append(DailyStep(date: stats.startDate, steps: Int(steps)))
+            }
+
+            DispatchQueue.main.async {
+                self.dailySteps = newSteps
+            }
+        }
+
+        healthStore.execute(query)
+    }
+
+    private func checkForReward() {
+        let today = Calendar.current.startOfDay(for: Date())
+        if let last = lastRewardDate, Calendar.current.isDate(last, inSameDayAs: today) {
+            return
+        }
+
+        if stepsToday >= goalSteps {
+            print("🎉 歩数目標達成！チューる +1")
+            NotificationCenter.default.post(name: .didEarnChuru, object: nil)
+            lastRewardDate = today
+            UserDefaults.standard.set(today, forKey: "lastRewardDate")
+        }
+    }
+
+    // MARK: - 課金管理
+    func purchase(userInfo: UserInfo) async {
+        do {
+            let storeProducts = try await Product.products(for: [productId])
+            guard let product = storeProducts.first else { return }
+
+            let result = try await product.purchase()
+            switch result {
+            case .success(let verification):
+                let transaction = try checkVerified(verification)
+                let trialPeriodDays = 7
+                let purchaseDate = transaction.purchaseDate
+
+                if subscriptionStartDate == nil {
+                    userInfo.addChuru(99)
+                    subscriptionStartDate = purchaseDate
+                    UserDefaults.standard.set(purchaseDate, forKey: "subscriptionStartDate")
+                } else if let start = subscriptionStartDate {
+                    let daysSinceStart = Calendar.current.dateComponents([.day], from: start, to: purchaseDate).day ?? 0
+                    if daysSinceStart < trialPeriodDays {
+                        userInfo.addChuru(7)
+                    } else {
+                        userInfo.addChuru(31)
+                    }
+                }
+
+                hasActiveSubscription = transaction.revocationDate == nil
+                subscriptionStatusMessage = "Subscription active ✅"
+
+                await transaction.finish()
+                updateSubscriptionStatus()
+
+            case .userCancelled:
+                subscriptionStatusMessage = "User cancelled ❌"
+            default:
+                subscriptionStatusMessage = "Purchase failed ❌"
+            }
+
+        } catch {
+            subscriptionStatusMessage = "Error: \(error.localizedDescription)"
+            print("purchase error: \(error.localizedDescription)")
+        }
+    }
+
+    func restorePurchases(userInfo: UserInfo) async {
+        for await result in Transaction.currentEntitlements {
+            if let transaction = try? checkVerified(result) {
+                if transaction.productID == productId {
+                    subscriptionStartDate = transaction.purchaseDate
+                    hasActiveSubscription = transaction.revocationDate == nil
+                    updateSubscriptionStatus()
+
+                    let trialPeriodDays = 7
+                    let now = Date()
+                    if let start = subscriptionStartDate {
+                        let daysSinceStart = Calendar.current.dateComponents([.day], from: start, to: now).day ?? 0
+                        if daysSinceStart < trialPeriodDays {
+                            userInfo.churuCount += 7
+                        } else {
+                            userInfo.churuCount += 31
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
+        switch result {
+        case .unverified: throw StoreError.failedVerification
+        case .verified(let safe): return safe
+        }
+    }
+
+    enum StoreError: Error { case failedVerification }
+
+    func subscriptionEndDate() -> Date? {
+        guard let start = subscriptionStartDate else { return nil }
+        return Calendar.current.date(byAdding: .day, value: 7, to: start)
+    }
+
+    func updateSubscriptionStatus() {
+        if let end = subscriptionEndDate() {
+            if Date() < end {
+                hasActiveSubscription = true
+                let daysLeft = Calendar.current.dateComponents([.day], from: Date(), to: end).day ?? 0
+                subscriptionStatusMessage = "Active (expires in \(daysLeft) days)"
+            } else {
+                hasActiveSubscription = false
+                subscriptionStatusMessage = "Subscription expired"
+            }
+        }
+    }
+}
+
+// MARK: - Notification連携（チュール加算トリガー）
+extension Notification.Name {
+    static let didEarnChuru = Notification.Name("didEarnChuru")
+}
+
+// MARK: - 歩数テキスト表示
+struct CatTalkViewForSteps: View {
+    let icon: UIImage
+    let steps: Int
+    let goal: Int
+    @ObservedObject var userInfo: UserInfo
+    @ObservedObject var subscriptionManager: SubscriptionManager
+    @State private var showMessage = false
+
+    var body: some View {
+        // body 内で変数に代入して渡す
+        let last7DaysSteps = getLast7DaysSteps()
+
+        VStack(spacing: 12) {
+            if showMessage {
+                let stepMessageFormat = NSLocalizedString(
+                    "steps_progress_message",
+                    comment: "歩数進捗メッセージ。{steps}歩歩いた、あと{remaining}歩でチューるゲット"
+                )
+                let remaining = max(goal - steps, 0)
+                let stepMessage = String(format: stepMessageFormat, steps, remaining)
+
+                messageHStack(
+                    icon: icon,
+                    text: stepMessage
+                )
+            }
+
+            // 📊 棒グラフ
+            WeeklyStepsChartView(dailySteps: last7DaysSteps)
+        }
+
+        .padding(.bottom, 50)
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation { showMessage = true }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .didEarnChuru)) { _ in
+            userInfo.addChuru(1)
+        }
+    }
+
+    private func getLast7DaysSteps() -> [SubscriptionManager.DailyStep] {
+        let calendar = Calendar.current
+        let today = Date()
+        var last7Days: [SubscriptionManager.DailyStep] = []
+
+        for offset in (0..<7).reversed() {
+            if let rawDate = calendar.date(byAdding: .day, value: -offset, to: today) {
+
+                // ✅ ここが重要：日付を「その日の午前0時」に揃える
+                let date = calendar.startOfDay(for: rawDate)
+
+                let step = subscriptionManager.dailySteps.first {
+                    calendar.isDate($0.date, inSameDayAs: date)
+                }
+                let stepsInt = step?.steps ?? 0
+
+                last7Days.append(.init(date: date, steps: stepsInt))
+            }
+        }
+        return last7Days
+    }
+
+
+
+
+    @ViewBuilder
+    private func messageHStack(icon: UIImage, text: String) -> some View {
+        HStack(alignment: .top) {
+            Image(uiImage: icon)
+                .resizable()
+                .frame(width: 80, height: 80)
+                .clipShape(Circle())
+                .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                .shadow(radius: 3)
+                .padding(.leading)
+
+            Text(text)
+                .padding(10)
+                .background(Color.white.opacity(0.9))
+                .cornerRadius(12)
+                .shadow(radius: 2)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.bottom, 5)
+        .transition(.opacity)
+    }
+}
+
+
+
+struct WeeklyStepsChartView: View {
+    let dailySteps: [SubscriptionManager.DailyStep]
+    
+    private let dateFormatter: DateFormatter = {
+        let df = DateFormatter()
+        df.locale = Locale.current // ユーザー端末の言語に合わせる
+        df.dateFormat = "M/d (E)"
+        return df
+    }()
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(NSLocalizedString("weekly_steps_title", comment: "過去7日間の歩数タイトル"))
+                .font(.headline)
+            
+            Chart(Array(dailySteps.enumerated()), id: \.offset) { index, item in
+                BarMark(
+                    x: .value(NSLocalizedString("index", comment: "インデックス"), index),
+                    y: .value(NSLocalizedString("steps", comment: "歩数"), Double(item.steps))
+                )
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [Color.pink.opacity(0.8), Color.orange.opacity(0.6)],
+                        startPoint: .bottom,
+                        endPoint: .top
+                    )
+                )
+                .cornerRadius(6)
+                .annotation(position: .top) {
+                    Text("\(item.steps)")
+                        .font(.caption2)
+                        .foregroundColor(.purple)
+                }
+            }
+            .padding(.horizontal, 16)
+            .frame(maxWidth: .infinity, minHeight: 200)
+            .chartYAxis {
+                AxisMarks(position: .leading)
+            }
+            .chartXAxis {
+                AxisMarks(values: Array(0..<dailySteps.count)) { value in
+                    AxisValueLabel {
+                        if let idx = value.as(Int.self) {
+                            let item = dailySteps[idx]
+                            Text(dateFormatter.string(from: item.date))
+                                .font(.caption2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.pink)
+                                .rotationEffect(.degrees(-45))
+                                .frame(width: 40, alignment: .trailing)
+                                .offset(x: -20)
+                        }
+                    }
+                }
+            }
+            // 今日マーク
+            .overlay(alignment: .bottomTrailing) {
+                HStack(spacing: 4) {
+                    Image(systemName: "pawprint.fill")
+                        .foregroundColor(.pink)
+                    Text(NSLocalizedString("today_label", comment: "今日ラベル"))
+                        .font(.caption)
+                        .foregroundColor(.pink)
+                }
+                .padding(.trailing, 4)
+                .padding(.bottom, 2)
+            }
+        }
+        .padding(.bottom)
+        .padding(.horizontal, 16)
+        .chartXScale(domain: 0...(dailySteps.count - 1))
+    }
+}
+
+
+    // MARK: - 利用規約テキスト
+    struct TermsOfServiceText {
+        static let japanese: String = """
+利用規約
+
+本アプリケーション（以下「本アプリ」）をご利用いただく前に、以下の利用規約（以下「本規約」）を必ずお読みください。本アプリを利用することで、本規約に同意したものとみなされます。
+
+1. サービス内容
+本アプリは、メンタルヘルスサポート機能を提供するアプリケーションです。提供される機能や内容は予告なく変更される場合があります。
+
+2. 利用料金および支払い
+1. 本アプリは、登録時に1週間の無料トライアルを提供します。
+2. 無料トライアル期間終了後は、月額 3,000円（税込）の利用料が自動的に発生します。
+3. 利用料は Apple ID の決済情報を通じて請求されます。
+4. 課金は自動更新され、解約しない限り次回請求日に継続課金されます。
+5. 無料トライアル期間中に解約した場合、料金は発生しません。
+
+3. サブスクリプションの管理と解約
+ユーザーは、Apple ID のアカウント設定からサブスクリプションを管理および解約できます。解約は次回課金日前に行う必要があります。
+
+4. 禁止事項
+ユーザーは以下の行為を行ってはなりません：
+- 法令または公序良俗に反する行為
+- 他のユーザーや第三者の権利を侵害する行為
+- 本アプリの不正利用やリバースエンジニアリング
+- 他のユーザーに迷惑や損害を与える行為
+- 本アプリの運営や他ユーザーの信頼を損なう行為
+
+5. 免責事項
+本アプリは、可能な限り正確な情報提供を目指しますが、提供内容の完全性や正確性を保証するものではありません。
+本アプリの利用によって生じたいかなる損害についても、運営者は一切責任を負いません。
+健康に関する情報は参考として提供されるものであり、医療行為や診断の代替にはなりません。
+
+6. データの取り扱い
+ユーザーが本アプリで提供する情報（テキストや写真など）は、アプリ内機能の提供や改善のために使用されます。
+個人情報の取り扱いについては、別途定めるプライバシーポリシーに従います。
+
+7. サービスの変更・終了
+本アプリは、予告なくサービス内容の変更や提供の中止を行う場合があります。
+サービス提供の中止によって生じたいかなる損害についても、運営者は責任を負いません。
+
+8. 規約の変更
+本規約は予告なく変更されることがあります。変更後に本アプリを利用した場合、変更後の規約に同意したものとみなされます。
+
+9. お問い合わせ
+本規約に関するお問い合わせは、アプリ内のお問い合わせ機能または運営者指定の連絡先までご連絡ください。
+
+10. 準拠法および裁判管轄
+本規約は日本法に準拠します。本アプリ利用に関する紛争は東京地方裁判所を第一審の専属管轄裁判所とします。
+
+ ねこログ プライバシーポリシー（規約末尾追記用・一括）
+ねこログ（以下「当アプリ」）は、ユーザーのプライバシーを尊重し、個人情報の適切な保護に努めます。本ポリシーは、当アプリが収集する情報、利用方法、管理方法について説明するものです。
+1. 収集する情報
+当アプリは、以下の情報を収集することがあります：
+ユーザーが入力する日記内容やメンタル記録
+アップロードした画像（飼い猫の写真など）
+デバイス情報（OSの種類、バージョン、デバイス識別子）
+アプリ利用状況（利用時間、操作履歴、エラー情報）
+2. 利用目的
+収集した情報は以下の目的で使用します：
+ユーザーの日記内容・画像の保存および表示
+AIによるテキスト生成機能の提供
+サービス改善、利用統計分析、不具合修正
+利用規約違反や不正行為の検知
+3. 第三者提供
+ユーザーの個人情報を本人の同意なく第三者に提供することはありません。
+ただし、法令に基づく場合、権利保護のために必要な場合、またはサービス運営に必要な業務委託先への提供は例外です。
+広告配信や分析サービスなど外部サービスを利用する場合は、必要最小限の情報のみを匿名化して提供します。
+4. データの保管期間
+ユーザーのアカウントが存在する間、または法令で定められた期間のみ情報を保管します。
+ユーザーが削除リクエストを行った場合、合理的な期間内に削除します。
+5. ユーザーの権利
+ユーザーは以下の権利を有します：
+自分のデータの閲覧、修正、削除
+データ利用停止の要求
+サポート窓口への問い合わせによる権利行使
+6. セキュリティ
+当アプリは、ユーザー情報を安全に管理するために、適切な技術的・物理的・組織的対策を講じます。
+ただし、インターネットを経由した通信やデータ保存の完全な安全性は保証できません。
+7. 未成年の利用
+13歳未満（または各国法令に定める年齢）の方は、保護者の同意なしに本アプリを利用できません。
+保護者の同意が必要な場合、同意確認を行うことがあります。
+8. 改訂について
+プライバシーポリシーは予告なく改訂することがあります。
+改訂後はアプリ内通知や公式サイトで周知します。
+9. お問い合わせ
+本ポリシーに関するお問い合わせは app.lab.nanato@gmail.com までお願いします。
+"""
+        
+        static let english: String = """
+Terms of Service
+
+Before using this application (hereinafter "this App"), please read the following Terms of Service (hereinafter "these Terms"). By using this App, you agree to these Terms.
+
+1. Service Description
+This App provides mental health support features. The content and functionality may change without notice.
+
+2. Fees and Payment
+1. This App offers a one-week free trial upon registration.
+2. After the free trial period ends, a monthly fee of 3,000 JPY (including tax) will be automatically charged.
+3. The fee will be billed through the payment method registered with your Apple ID.
+4. Subscriptions are automatically renewed unless canceled before the next billing date.
+5. If canceled during the free trial period, no charge will occur.
+
+3. Subscription Management and Cancellation
+Users can manage and cancel subscriptions from their Apple ID account settings. Cancellation must occur before the next billing date.
+
+4. Prohibited Activities
+Users must not:
+- Violate any laws or public morals
+- Infringe on the rights of other users or third parties
+- Misuse the app or attempt reverse engineering
+- Cause inconvenience or damage to other users
+- Undermine the operation of the app or trust of other users
+
+5. Disclaimer
+This App aims to provide accurate information but does not guarantee completeness or accuracy. The operator is not responsible for any damages resulting from app usage. Health information is provided for reference only and does not replace medical advice or diagnosis.
+
+6. Data Handling
+Information provided by users (text, photos, etc.) may be used for app functionality and improvement. Personal information handling is governed by the separate Privacy Policy.
+
+7. Service Changes or Termination
+The app may change or terminate services without notice. The operator is not responsible for any damages resulting from service termination.
+
+8. Changes to Terms
+These Terms may change without notice. Continued use of the app after changes constitutes agreement to the revised Terms.
+
+9. Contact
+For inquiries regarding these Terms, please use the in-app contact feature or the operator's designated contact method.
+
+10. Governing Law and Jurisdiction
+These Terms are governed by Japanese law. Any disputes shall be subject to the exclusive jurisdiction of the Tokyo District Court as the court of first instance.
+
+📄 NekoLog Privacy Policy (Append to Terms of Service)
+NekoLog (hereinafter "the App") respects users' privacy and is committed to protecting personal information appropriately. This Policy explains the information collected by the App, how it is used, and how it is managed.
+1. Information We Collect
+The App may collect the following information:
+Diary entries and mental health records entered by users
+Uploaded images (e.g., photos of your pet cat)
+Device information (OS type, version, device identifiers)
+App usage data (usage time, operation history, error logs)
+2. Purpose of Use
+Collected information is used for the following purposes:
+Saving and displaying users’ diary entries and images
+Providing AI text generation features
+Service improvement, usage statistics analysis, and bug fixing
+Detecting violations of the Terms of Service or fraudulent activity
+3. Third-Party Disclosure
+Users’ personal information will not be provided to third parties without consent.
+Exceptions include cases required by law, to protect rights, or for necessary business operations.
+When using external services for advertising or analytics, only anonymized and minimal data is provided.
+4. Data Retention
+User data is retained while the account exists or as required by law.
+Upon user request for deletion, data will be removed within a reasonable period.
+5. User Rights
+Users have the following rights:
+Access, correct, or delete their data
+Request cessation of data use
+Contact support to exercise their rights
+6. Security
+The App implements appropriate technical, physical, and organizational measures to safeguard user information.
+However, complete security of data transmitted or stored over the Internet cannot be guaranteed.
+7. Use by Minors
+Users under the age of 13 (or the age specified by local law) must obtain parental consent before using the App.
+Parental consent may be verified when required.
+8. Policy Updates
+This Privacy Policy may be revised without prior notice.
+Users will be informed of significant changes via in-app notification or official website.
+9. Contact
+For any questions regarding this Policy, please contact us at app.lab.nanato@gmail.com.
+"""
+    }
+    
+// MARK: - 利用規約表示
+struct TermsView: View {
+    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var subscriptionManager: SubscriptionManager
+    @EnvironmentObject var userInfo: UserInfo
+    @Environment(\.presentationMode) var presentationMode
+    
+    var body: some View {
+        VStack {
+            ScrollView {
+                Text(NSLocalizedString("terms_of_service_text", comment: "利用規約本文"))
+                    .padding()
+            }
+            
+            Button(action: {
+                appState.markLaunched()
+                presentationMode.wrappedValue.dismiss()
+
+                // ✅ 購入処理を呼ぶ
+                Task {
+                    await subscriptionManager.purchase(userInfo: userInfo)
+                }
+
+            }) {
+                Text(NSLocalizedString("agree_and_start", comment: "同意して開始するボタン"))
+                    .foregroundColor(.white)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.blue)
+                    .cornerRadius(10)
+                    .padding()
+            }
+        }
+        .navigationTitle(NSLocalizedString("terms_title", comment: "利用規約タイトル"))
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// MARK: - 設定画面
+struct SettingsView: View {
+    @StateObject private var subscriptionManager = SubscriptionManager()
+    @EnvironmentObject var userInfo: UserInfo
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 20) {
+                
+                // 利用規約遷移
+                NavigationLink(
+                    destination: TermsView()
+                        .environmentObject(subscriptionManager)
+                ) {
+                    Text(NSLocalizedString("view_terms", comment: "利用規約を見るボタン"))
+                        .foregroundColor(.blue)
+                        .padding()
+                        .background(Color.gray.opacity(0.2))
+                        .cornerRadius(8)
+                }
+                
+                // サブスク購入ボタン
+                Button(action: {
+                    Task {
+                        print("SettingsView: purchase button tapped")
+                        print("Current churuCount before purchase = \(userInfo.churuCount)")
+                        await subscriptionManager.purchase(userInfo: userInfo)
+                        print("Current churuCount after purchase = \(userInfo.churuCount)")
+                    }
+                }) {
+                    Text(NSLocalizedString("start_subscription", comment: "サブスク購入ボタン"))
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.green)
+                        .cornerRadius(8)
+                }
+                
+                // 復元ボタン
+                Button(action: {
+                    Task {
+                        print("SettingsView: restore button tapped")
+                        await subscriptionManager.restorePurchases(userInfo: userInfo)
+                    }
+                }) {
+                    Text(NSLocalizedString("restore_purchases", comment: "購入復元ボタン"))
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.orange)
+                        .cornerRadius(8)
+                }
+                
+                // サブスクステータス表示
+                Text(subscriptionManager.subscriptionStatusMessage)
+                    .foregroundColor(.gray)
+                
+                Spacer()
+            }
+            .padding()
+            .navigationTitle(NSLocalizedString("settings_title", comment: "設定画面タイトル"))
+        }
+    }
+}
+
+
